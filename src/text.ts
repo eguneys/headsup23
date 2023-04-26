@@ -88,6 +88,7 @@ export class Text extends Play {
 
   set text(text: string) {
     this.data.text = text
+    this.origin = this.data.center ? Vec2.make(this.width / 2, 0) : Vec2.zero
   }
 
   _size!: number
@@ -131,8 +132,8 @@ type ClickableData = {
   rect: Rect,
   on_hover?: () => boolean,
   on_hover_end?: () => void,
-  on_click_begin?: () => boolean,
-  on_click?: () => boolean,
+  on_click_begin?: (e: Vec2) => boolean,
+  on_click?: (e: Vec2) => boolean,
   on_drag_begin?: (e: Vec2) => boolean,
   on_drag_end?: (e: Vec2) => void,
   on_drag?: (e: Vec2) => boolean,
@@ -190,7 +191,7 @@ export class Clickable extends Play {
         let point = Rect.make(e.x - 4, e.y - 4, 8, 8)
         let rect = self.rect
         if (rect.overlaps(point)) {
-          return self.data.on_click_begin?.() ?? false
+          return self.data.on_click_begin?.(e) ?? false
         }
         return false
       },
@@ -292,7 +293,7 @@ export class Clickable extends Play {
         let point = Rect.make(e.x - 4, e.y - 4, 8, 8)
         let rect = self.rect
         if (rect.overlaps(point)) {
-          return self.data.on_click?.() ?? false
+          return self.data.on_click?.(e) ?? false
         }
         return false
       },

@@ -3,6 +3,7 @@ import { Vec2, Color } from 'blah'
 import { App, batch } from 'blah'
 
 import Content from './content'
+import Input from './input'
 import { Play } from './play'
 import { Scene } from './scene'
 
@@ -34,6 +35,8 @@ export default class Game extends Play {
     App.backbuffer.clear(Color.black)
 
     this._draw_children(batch)
+
+    Input._sort_hooks()
   }
 
 

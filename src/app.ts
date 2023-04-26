@@ -15,6 +15,7 @@ export const app = (element: HTMLElement) => {
       game.init()
     },
     on_update() {
+      Input.update()
       game.update()
     },
     on_render() {
