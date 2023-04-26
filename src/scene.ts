@@ -1,9 +1,12 @@
-import { Mat3x2, Color, Rect, Vec2, Batch } from 'blah'
+import { Color, Vec2, Batch } from 'blah'
 import { PovHighlight, HandPov, Hi } from 'lheadsup'
 
-import Game from './game'
 import { Play } from './play'
 import { Anim } from './anim'
+import { Background, RectView, Text } from './text'
+
+import { Buttons } from './buttons'
+
 
 export type Suit = string
 export type Rank = string
@@ -93,9 +96,9 @@ export class Card extends Play {
     this.base_y = this.position.y
 
 
-    this.shade = this.make(RectView, Vec2.make(-88, -120), {
-      w: 200,
-      h: 240,
+    this.shade = this.make(RectView, Vec2.make(-80, -116), {
+      w: 200 - 16,
+      h: 240 - 8,
       color: new Color(0, 0, 0, 120)
     })
     this.shade.visible = false
@@ -120,6 +123,7 @@ export class Card extends Play {
     this.decoration.visible = false
     this.anim.visible = true
     this.position.y = this.base_y
+    this.bounce()
     yield* this.anim.play_now_single('back_idle')
   }
 
@@ -130,6 +134,7 @@ export class Card extends Play {
     this.decoration.visible = false
     this.anim.visible = true
     this.position.y = this.base_y
+    this.bounce()
     yield* this.anim.play_now_single('back_flip')
     yield* this.anim.play_now_single('idle')
 
@@ -224,6 +229,11 @@ export class MiddleCards extends Play {
     }
 
     function *showdown_title(new_pov: HandPov) {
+
+      if (!new_pov.opponent) {
+        return
+      }
+
       let { highlight, my_hand_rank, op_hand_rank } = new_pov
 
       let hand_rank = highlight.hand_win ? my_hand_rank! : op_hand_rank!
@@ -403,21 +413,22 @@ export class Scene extends Play {
     this.make(Background)
     this.m_cards = this.make(MiddleCards)
 
+    this.make(Buttons)
 
-    //this.m_cards.fen = 'Ah Ts'
+    this.m_cards.fen = 'Ah Ts'
     //this.m_cards.fen = 'Ah Ts Qs 2h 3c'
     //this.m_cards.fen = 'Ah Ts Qs 2h 3c Th'
     //this.m_cards.fen = 'Ah Ts Qs 2h 3c Th Js'
-    this.m_cards.fen = 'Ah Ts Qs 2h 3c Th Js 2d 3d'
+    //this.m_cards.fen = 'Ah Ts Qs 2h 3c Th Js 2d 3d'
     //setTimeout(() => this.m_cards.fen = 'Ah Ts Qs 2h 3c', 1000)
     //setTimeout(() => this.m_cards.fen = 'Ah Ts Qs 2h 3c Th Js', 4000)
-    //setTimeout(() => this.m_cards.fen = 'Ah Ts Qs 2h 3c Th Js 2d 3d', 9000)
+    //setTimeout(() => this.m_cards.fen = 'Ah Ts Qs 2h 3c Th Js 2d 3d', 3000)
 
 
     let n = 1000
     for (let hand of hand_tests) {
       setTimeout(() => {
-        this.m_cards.fen = hand[0]
+       this.m_cards.fen = hand[0]
       }, n)
       n += 5000
     }
@@ -428,123 +439,6 @@ export class Scene extends Play {
     this._draw_children(batch)
     batch.render()
     batch.clear()
-  }
-}
-
-
-
-type RectData = {
-  w: number,
-  h: number,
-  color?: Color
-}
-
-export class RectView extends Play {
-
-  get data() {
-    return this._data as RectData
-  }
-
-  _color!: Color
-  set color(c: Color) {
-    this._color = c
-  }
-  get color() {
-    return this._color
-  }
-
-  set height(h: number) {
-    this.data.h = h
-  }
-
-  _init() {
-    this.color = this.data.color ?? Color.white
-  }
-
-  _draw(batch: Batch) {
-    batch.rect(Rect.make(this.position.x, this.position.y, this.data.w, this.data.h), this.color)
-  }
-}
-
-export class Background extends Play {
-  _init() {
-
-    this.make(RectView, Vec2.make(0, 0), {
-      w: Game.width,
-      h: Game.height,
-      color: Color.hex(0x222222)
-    })
-  }
-}
-
-
-
-
-type TextData = {
-  size?: number,
-  text: string,
-  center?: true,
-  color?: Color
-  rotation?: number
-}
-
-export class Text extends Play {
-
-  get data() {
-    return this._data as TextData
-  }
-
-  get justify() {
-    return this.data.center ? Vec2.make(0, 0) : Vec2.zero
-  }
-
-  get color() {
-    return this._color
-  }
-
-  _color!: Color
-  set color(color: Color) {
-    this._color = color
-  }
-
-  get text() {
-    return this.data.text
-  }
-
-  set text(text: string) {
-    this.data.text = text
-  }
-
-  _size!: number
-  get size() {
-    return this._size
-  }
-
-  set size(size: number) {
-    this._size = size
-  }
-
-  get width() {
-    return this.font.width_of(this.text) / this.font.size * this.size
-  }
-
-  get height() {
-    return this.font.height_of(this.text) / this.font.size * this.size
-  } 
-
-  _init() {
-    this.color = this.data.color ?? Color.white
-    this._size = this.data.size ?? 128
-    this.rotation = this.data.rotation ?? 0
-    this.origin = this.data.center ? Vec2.make(this.width / 2, 0) : Vec2.zero
-  }
-
-  _draw(batch: Batch) {
-    batch.push_matrix(Mat3x2.create_transform(this.position, this.origin, Vec2.one, this.rotation))
-
-    this.g_position = Vec2.transform(Vec2.zero, batch.m_matrix)
-    batch.str_j(this.font, this.text, Vec2.zero, this.justify, this.size, this.color)
-    batch.pop_matrix()
   }
 }
 

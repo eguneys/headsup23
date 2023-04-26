@@ -135,27 +135,38 @@ export abstract class Play {
 
   }
 
-  _tweens: Array<[Tween, (v: number) => void, (() => void) | undefined]> = []
-  tween(values: Array<number>, f: (v: number) => void, duration: Array<number> | number, loop: number = 0, on_complete?: () => void) {
+  _tweens: Array<[Tween, (v: number) => void, (() => void) | undefined, (() => void) | undefined]> = []
+  tween(values: Array<number>, f: (v: number) => void, duration: Array<number> | number, loop: number = 0, on_complete?: () => void, on_cancelled?: () => void) {
 
     duration = typeof duration === 'number' ? [duration] : duration
     let t = new Tween(values, duration, loop).init()
-    this._tweens.push([t, f, on_complete])
+    this._tweens.push([t, f, on_complete, on_cancelled])
     return t
   }
 
   cancel(t: Tween) {
+    this._tweens.filter(_ => _[0] === t).forEach(_ => _[3]?.())
     this._tweens = this._tweens.filter(_ => _[0] !== t)
   }
 
-  _tween?: Tween
-  tween_single(_ref: Tween | undefined, values: Array<number>, f: (v: number) => void, duration: Array<number> | number, loop: number = 0, on_complete?: () => void) {
+  tween_single(_ref: Tween | undefined, values: Array<number>, f: (v: number) => void, duration: Array<number> | number, loop: number = 0, on_complete?: () => void, on_cancelled?: () => void) {
     if (_ref) {
       this.cancel(_ref)
     }
-    return this.tween(values, f, duration, loop, on_complete)
+    return this.tween(values, f, duration, loop, on_complete, on_cancelled)
   }
 
+  bounce_ref?: Tween
+  bounce() {
+    if (this.bounce_ref) {
+      this.cancel(this.bounce_ref)
+    }
+
+    let base_scale = this.scale
+    this.bounce_ref = this.tween([1, 0.9, 1], v => this.scale = base_scale.scale(v), 100, 0, undefined, () => {
+      this.scale = base_scale
+    })
+  }
 
 
   make<T extends Play>(ctor: { new(...args: any[]): T}, position: Vec2 = Vec2.zero, data: any = {}) {
@@ -198,7 +209,6 @@ export abstract class Play {
       t.update(Time.delta * 1000)
       f(t.value)
       if (t.completed && on_complete) {
-
         on_complete()
 
       }
