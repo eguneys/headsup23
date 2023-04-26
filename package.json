@@ -1,0 +1,26 @@
+{
+  "name": "headsup23",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "devc": "concurrently \"pnpm dev\" \"pnpm content\"",
+    "dev": "vite --port=3000",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "tsc --noEmit --watch",
+    "content": "node content.js"
+  },
+  "dependencies": {
+    "blah": "link:../blah",
+    "lheadsup": "link:../lheadsup",
+    "vite-plugin-glsl": "^1.1.2"
+  },
+  "devDependencies": {
+    "aset": "link:../aset",
+    "chokidar": "^3.5.3",
+    "concurrently": "^7.6.0",
+    "typescript": "^5.0.2",
+    "vite": "^4.3.0"
+  }
+}
