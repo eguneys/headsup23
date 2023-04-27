@@ -407,13 +407,29 @@ export class ShowdownTitle extends Play {
 export class Scene extends Play {
 
   m_cards!: MiddleCards
+  buttons!: Buttons
 
   _init() {
 
     this.make(Background)
     this.m_cards = this.make(MiddleCards)
 
-    this.make(Buttons)
+    this.buttons = this.make(Buttons, Vec2.zero, {
+      on_action(v: string) {
+        console.log(v)
+      }
+    })
+
+    let big_blind = 2
+    let pot = 100
+
+    this.buttons.set_fen(undefined, big_blind, pot)
+    this.buttons.set_fen(`check raise-0-20-180 allin-190 fold`, big_blind, pot)
+    //this.buttons.set_fen(`call-10 raise-10-20-180 allin-190 fold`, big_blind, pot)
+    //this.buttons.set_fen(`phase`, big_blind, pot)
+    //this.buttons.set_fen(`check raise-0-20-80 allin-80 fold`, big_blind, pot)
+    //this.buttons.set_fen(`check allin-80 fold`, big_blind, pot)
+    //this.buttons.set_fen(`allin-80 fold`, big_blind, pot)
 
     this.m_cards.fen = 'Ah Ts'
     //this.m_cards.fen = 'Ah Ts Qs 2h 3c'
